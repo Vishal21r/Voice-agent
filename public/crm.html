@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fortifex CRM Dashboard</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:#0a0e1a; color:#e2e8f0; min-height:100vh; }
+    
+    .navbar {
+      background:rgba(15,20,35,0.95); border-bottom:1px solid #1e2d4a;
+      padding:14px 32px; display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100; backdrop-filter:blur(12px);
+    }
+    .logo { display:flex; align-items:center; gap:10px; }
+    .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,#3b82f6,#8b5cf6); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .logo-text { font-size:20px; font-weight:700; background:linear-gradient(135deg,#3b82f6,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-links a { color:#94a3b8; text-decoration:none; font-size:14px; padding:6px 12px; border-radius:6px; margin-left:8px; transition:all 0.2s; }
+    .nav-links a:hover { color:#fff; background:#1e2d4a; }
+
+    .container { max-width:1200px; margin:0 auto; padding:32px 24px; }
+    h1 { font-size:28px; margin-bottom:8px; }
+    .subtitle { color:#64748b; font-size:14px; margin-bottom:32px; }
+
+    /* Stats Row */
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:32px; }
+    .stat-card {
+      background:#111827; border:1px solid #1e2d4a; border-radius:16px;
+      padding:20px; text-align:center;
+    }
+    .stat-value { font-size:36px; font-weight:800; background:linear-gradient(135deg,#3b82f6,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .stat-label { font-size:12px; color:#64748b; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px; }
+
+    /* Tabs */
+    .tabs { display:flex; border-bottom:1px solid #1e2d4a; margin-bottom:24px; }
+    .tab { padding:12px 20px; color:#64748b; cursor:pointer; border-bottom:2px solid transparent; font-size:14px; transition:all 0.2s; }
+    .tab.active { color:#3b82f6; border-bottom-color:#3b82f6; }
+
+    /* Table */
+    .table-wrap { background:#111827; border:1px solid #1e2d4a; border-radius:16px; overflow:hidden; }
+    table { width:100%; border-collapse:collapse; }
+    thead { background:#0d1424; }
+    th { padding:14px 16px; text-align:left; font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+    td { padding:14px 16px; font-size:14px; border-top:1px solid #0d1424; }
+    tr:hover td { background:rgba(59,130,246,0.03); }
+
+    .badge { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+    .badge.hot { background:#2d1515; color:#ef4444; border:1px solid #ef4444; }
+    .badge.warm { background:#2d1f0f; color:#f97316; border:1px solid #f97316; }
+    .badge.cold { background:#0f1a2d; color:#3b82f6; border:1px solid #3b82f6; }
+    .badge.confirmed { background:#0f2d1a; color:#22c55e; border:1px solid #22c55e; }
+    .badge.positive { color:#22c55e; }
+    .badge.negative { color:#ef4444; }
+    .badge.neutral { color:#94a3b8; }
+
+    .empty-state { text-align:center; padding:60px; color:#374151; }
+    .empty-state .emoji { font-size:48px; display:block; margin-bottom:16px; }
+
+    .score-mini { display:inline-flex; align-items:center; gap:6px; font-size:13px; }
+    .score-mini-bar { width:60px; height:4px; background:#1e2d4a; border-radius:2px; overflow:hidden; }
+    .score-mini-fill { height:100%; background:linear-gradient(90deg,#ef4444,#f97316,#22c55e); border-radius:2px; }
+
+    .refresh-btn {
+      background:linear-gradient(135deg,#3b82f6,#8b5cf6); border:none; border-radius:10px;
+      padding:10px 20px; color:#fff; font-size:14px; cursor:pointer; font-weight:600;
+    }
+    .refresh-btn:hover { opacity:0.9; }
+
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">Fortifex CRM</span>
+  </div>
+  <div class="nav-links">
+    <a href="/">🎙️ Voice Agent</a>
+    <a href="/crm.html">📊 CRM</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1>📊 Sales Dashboard</h1>
+  <p class="subtitle">Real-time lead tracking and appointment management from ARIA conversations</p>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-value" id="st-sessions">-</div><div class="stat-label">Total Sessions</div></div>
+    <div class="stat-card"><div class="stat-value" id="st-leads">-</div><div class="stat-label">Total Leads</div></div>
+    <div class="stat-card"><div class="stat-value" id="st-hot">-</div><div class="stat-label">🔥 Hot Leads</div></div>
+    <div class="stat-card"><div class="stat-value" id="st-warm">-</div><div class="stat-label">🌡️ Warm Leads</div></div>
+    <div class="stat-card"><div class="stat-value" id="st-appts">-</div><div class="stat-label">Appointments</div></div>
+    <div class="stat-card"><div class="stat-value" id="st-conv">-%</div><div class="stat-label">Conversion Rate</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('leads',this)">👤 Leads</div>
+      <div class="tab" onclick="showTab('appointments',this)">📅 Appointments</div>
+    </div>
+    <button class="refresh-btn" onclick="loadAll()">🔄 Refresh</button>
+  </div>
+
+  <!-- Leads Table -->
+  <div class="tab-content active" id="tab-leads">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name / Company</th>
+            <th>Contact</th>
+            <th>Team Size</th>
+            <th>Pain Point</th>
+            <th>Score</th>
+            <th>Sentiment</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="leadsBody">
+          <tr><td colspan="8">
+            <div class="empty-state"><span class="emoji">🎙️</span>No leads yet. Start a conversation with ARIA!</div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Appointments Table -->
+  <div class="tab-content" id="tab-appointments">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Date & Time</th>
+            <th>Meeting Type</th>
+            <th>Status</th>
+            <th>Booked At</th>
+            <th>Confirmation</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsBody">
+          <tr><td colspan="7">
+            <div class="empty-state"><span class="emoji">📅</span>No appointments booked yet.</div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadStats() {
+  try {
+    const res = await fetch('/api/dashboard/stats');
+    const d = await res.json();
+    document.getElementById('st-sessions').textContent = d.totalSessions;
+    document.getElementById('st-leads').textContent = d.totalLeads;
+    document.getElementById('st-hot').textContent = d.hotLeads;
+    document.getElementById('st-warm').textContent = d.warmLeads;
+    document.getElementById('st-appts').textContent = d.totalAppointments;
+    document.getElementById('st-conv').textContent = d.conversionRate + '%';
+  } catch(e) {}
+}
+
+async function loadLeads() {
+  try {
+    const res = await fetch('/api/crm/leads');
+    const d = await res.json();
+    const tbody = document.getElementById('leadsBody');
+    
+    if (!d.leads.length) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><span class="emoji">🎙️</span>No leads yet. Start a conversation with ARIA!</div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = d.leads.map(l => `
+      <tr>
+        <td>
+          <div style="font-weight:600">${l.name || '<span style="color:#374151">Unknown</span>'}</div>
+          <div style="font-size:12px;color:#64748b">${l.company || '—'}</div>
+        </td>
+        <td>
+          <div style="font-size:13px">${l.email || '—'}</div>
+          <div style="font-size:12px;color:#64748b">${l.phone || '—'}</div>
+        </td>
+        <td>${l.teamSize ? l.teamSize + ' people' : '—'}</td>
+        <td>${l.painPoint || '—'}</td>
+        <td>
+          <div class="score-mini">
+            ${l.qualificationScore}%
+            <div class="score-mini-bar"><div class="score-mini-fill" style="width:${l.qualificationScore}%"></div></div>
+          </div>
+        </td>
+        <td><span class="badge ${l.sentiment}">${l.sentiment === 'positive' ? '😊' : l.sentiment === 'negative' ? '😟' : '😐'} ${l.sentiment}</span></td>
+        <td><span class="badge ${l.status.toLowerCase()}">${l.status === 'Hot' ? '🔥' : l.status === 'Warm' ? '🌡️' : '❄️'} ${l.status}</span></td>
+        <td style="font-size:12px;color:#64748b">${new Date(l.createdAt).toLocaleString('en-IN')}</td>
+      </tr>
+    `).join('');
+  } catch(e) {}
+}
+
+async function loadAppointments() {
+  try {
+    const res = await fetch('/api/appointments');
+    const d = await res.json();
+    const tbody = document.getElementById('appointmentsBody');
+
+    if (!d.appointments.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="emoji">📅</span>No appointments booked yet.</div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = d.appointments.map(a => `
+      <tr>
+        <td><div style="font-weight:600">${a.name}</div></td>
+        <td>${a.email}</td>
+        <td>
+          <div style="font-weight:600">${a.date}</div>
+          <div style="font-size:12px;color:#64748b">${a.time}</div>
+        </td>
+        <td style="font-size:13px">${a.type}</td>
+        <td><span class="badge confirmed">✅ ${a.status}</span></td>
+        <td style="font-size:12px;color:#64748b">${new Date(a.bookedAt).toLocaleString('en-IN')}</td>
+        <td style="font-family:monospace;color:#3b82f6">#${a.id.slice(0,8).toUpperCase()}</td>
+      </tr>
+    `).join('');
+  } catch(e) {}
+}
+
+function loadAll() { loadStats(); loadLeads(); loadAppointments(); }
+
+function showTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+window.onload = loadAll;
+</script>
+</body>
+</html>
